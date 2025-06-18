@@ -1,3 +1,4 @@
+import joblib
 import mlflow
 import pandas as pd
 from sklearn.metrics import classification_report, roc_auc_score
@@ -14,6 +15,7 @@ def train(
     target_column: str,
     test_size: float = 0.2,
     random_state: int = 42,
+    model_output: str = "models/churn_model.pkl"
 ):
     """Main training pipeline.
 
@@ -54,3 +56,5 @@ def train(
             )
 
         mlflow.sklearn.log_model(pipeline, "model", input_example=X_train.iloc[:5])
+
+        joblib.dump(pipeline, model_output)

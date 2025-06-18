@@ -21,6 +21,7 @@ class ExperimentConfig(BaseModel):
     random_state: Optional[int] = 42
     data: DataConfig
     model: ModelConfig
+    model_output: Optional[str] = "models/churn_model.pkl"
 
 
 def load_experiment_config(path: Union[str, Path]) -> ExperimentConfig:
