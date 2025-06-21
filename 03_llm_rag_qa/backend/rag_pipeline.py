@@ -39,6 +39,6 @@ class RagPipeline:
 
 if __name__ == "__main__":
     model = RagPipeline()
-    model.load_and_index("/Users/bugesz/workspace/projects/03_llm_rag_qa/data/ci-technical-documentation-2014.pdf")
+    # model.load_and_index("/Users/bugesz/workspace/projects/03_llm_rag_qa/data/ci-technical-documentation-2014.pdf")
     result = model.answer("What is this document about?")
     print(result)
