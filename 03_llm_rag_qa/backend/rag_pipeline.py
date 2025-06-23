@@ -18,6 +18,7 @@ class RagPipeline:
         self.loaded_document = None
 
     def load_and_index(self, file_path: str):
+        print("Loading document:", file_path)
         if self.loaded_document != file_path:
             self.loaded_document = file_path
             self._setup_vectorstore()

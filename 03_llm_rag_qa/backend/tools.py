@@ -38,8 +38,8 @@ def get_weather(city: str) -> str:
 
 
 @tool 
-def document_lookup(query: str) -> str:
-    """Use this tool only if you're asked for information that requires deep document lookup or is not in your own knowledge.
+def answer_from_document(query: str) -> str:
+    """Get answer for uploaded document for queries asking document related questions.
 
     Args:
         query (str): Query to search for.
@@ -53,4 +53,4 @@ def document_lookup(query: str) -> str:
     return SystemMessage("\n\nContext: \n\n".join(chunks))
 
 # List of tools to register with agents or executors
-tool_list = [calculator, get_weather, document_lookup]
+tool_list = [calculator, get_weather, answer_from_document]

@@ -8,12 +8,8 @@ from tools import tool_list
 from langgraph.graph.message import MessagesState
 from langgraph.checkpoint.memory import InMemorySaver
 
-class QAState(MessagesState):
-    context: Optional[List[str]]
 
-
-def main():
-    system_prompt = """
+DEFAULT_SYSTEM_PROMPT = """
 You are a helpful AI assistant.
 
 You can:
@@ -21,6 +17,7 @@ You can:
 - Use tools **only** when you truly need help — for example:
   - You don't know the answer
   - The user asks about calculations, summaries, or document-specific facts
+  - If the user asks you questions about the uploaded document
 
 DO NOT use a tool if:
 - You're confident in the answer
@@ -31,25 +28,38 @@ Be honest. If you don't know something and a tool doesn't help, say:
 
 Use tools **sparingly and only when they are the best option.**
 """
-    # llm = LLMResponder("llama3.2:1b-instruct-fp16", system_prompt=system_prompt)
-    llm = LLMResponder("qwen3:0.6b", system_prompt=system_prompt)
-    llm.bind_tools(tool_list)
+
+class QAState(MessagesState):
+    context: Optional[List[str]]
+
+class Graph:
+    def __init__(self, model_name: str = None, thread_id: int = None, system_prompt: str = None):
+        self.model_name = model_name or "qwen3:0.6b"
+        self.system_prompt = system_prompt or self.get_default_system_promt()
+        self.thread_id = thread_id or 42
+
+        self.build_graph()
+
+    def build_graph(self):
+        llm = LLMResponder(self.model_name, system_prompt=self.system_prompt)
+        llm.bind_tools(tool_list)
 
 
-    builder = StateGraph(QAState)
-    builder.add_node("generate", llm)
-    builder.add_node("tools", ToolNode(tool_list))
+        builder = StateGraph(QAState)
+        builder.add_node("generate", llm)
+        builder.add_node("tools", ToolNode(tool_list))
 
-    # Start → generate
-    builder.add_edge(START, "generate")
+        # Start → generate
+        builder.add_edge(START, "generate")
 
-    # generate → route dynamically
-    builder.add_conditional_edges("generate", tools_condition)
+        # generate → route dynamically
+        builder.add_conditional_edges("generate", tools_condition)
 
-    # tool → generate (loop after tool result)
-    builder.add_edge("tools", "generate")
-    builder.add_edge("generate", END)
+        # tool → generate (loop after tool result)
+        builder.add_edge("tools", "generate")
+        builder.add_edge("generate", END)
 
-    graph = builder.compile(checkpointer=InMemorySaver())
+        self.graph = builder.compile(checkpointer=InMemorySaver())        
 
-    return graph
+    def get_default_system_promt(self):
+        return DEFAULT_SYSTEM_PROMPT
