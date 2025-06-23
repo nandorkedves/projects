@@ -1,9 +1,13 @@
 from langchain.tools import tool
 from rag_pipeline import RagPipeline
+from langchain_core.messages import SystemMessage
+
+
+rag = RagPipeline()
 
 # Simple calculator tool
 @tool
-def calculate(expression: str) -> str:
+def calculator(expression: str) -> str:
     """Evaluates a mathematical expression and returns the result.
     Input should be a string like '3+5=8'
 
@@ -15,7 +19,7 @@ def calculate(expression: str) -> str:
     """    
     try:
         result = eval(expression, {"__builtins__": {}})
-        return str(result)
+        return SystemMessage(f"Calculation result for {expression}: {result}")
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -30,13 +34,12 @@ def get_weather(city: str) -> str:
     Returns:
         str: Weather description.
     """    
-    return f"It's always sunny in {city}!"
+    return SystemMessage(f"It's always sunny in {city}!")
 
-rag = RagPipeline()
-rag.load_and_index("/Users/bugesz/workspace/projects/03_llm_rag_qa/data/some_text.txt")
+
 @tool 
-def rag_tool(query: str) -> str:
-    """Function to retrieve relevant information from documents. 
+def document_lookup(query: str) -> str:
+    """Use this tool only if you're asked for information that requires deep document lookup or is not in your own knowledge.
 
     Args:
         query (str): Query to search for.
@@ -46,9 +49,8 @@ def rag_tool(query: str) -> str:
     """    
     if not query:
         return "No query provided for retrieval."
-    chunks = rag.answer(query)
-    return "\n\nContext: \n\n".join(chunks)
+    chunks = rag.answer(query, top_k=10)
+    return SystemMessage("\n\nContext: \n\n".join(chunks))
 
 # List of tools to register with agents or executors
-# tool_list = [calculate, get_weather, rag_tool]
-tool_list = [rag_tool]
+tool_list = [calculator, get_weather, document_lookup]

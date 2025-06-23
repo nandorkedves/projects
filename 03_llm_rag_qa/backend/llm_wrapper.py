@@ -4,15 +4,23 @@ from langgraph.graph.message import MessagesState
 from langchain_core.runnables.base import Runnable
 from langchain_core.messages.base import BaseMessage
 
+from langsmith import traceable
+
+
 class LLMResponder(Runnable):
     def __init__(self, model_name: str, system_prompt: Optional[str] = None):
         self.model_name = model_name
         self.system_prompt = system_prompt or "You are a helpful assistant."
         
         self.model = ChatOllama(model=model_name)
-        
+
+    @traceable        
     def invoke(self, state: MessagesState, config: Optional[dict] = None):
+        history_size = config.get('configurable', {}).get("history_size")
         query = state["messages"]
+        if history_size:
+            query = query[-history_size:]
+
         context_chunks = state.get("context", [])
 
         # Build context injection if needed

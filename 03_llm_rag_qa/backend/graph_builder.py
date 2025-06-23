@@ -14,12 +14,27 @@ class QAState(MessagesState):
 
 def main():
     system_prompt = """
-    You are a heplful assistant. Your job is to answer the user's queries, regardless of what they ask for.
-    You have a few tools at your disposal, check them if you need to find the answer.
-    If you don't know the answer, just say: "Sorry I can't help you with that". That's all.
+You are a helpful AI assistant.
+
+You can:
+- Answer questions directly if they are simple, conversational, or based on common knowledge.
+- Use tools **only** when you truly need help — for example:
+  - You don't know the answer
+  - The user asks about calculations, summaries, or document-specific facts
+
+DO NOT use a tool if:
+- You're confident in the answer
+- The question is about you, your personality, or general conversation
+
+Be honest. If you don't know something and a tool doesn't help, say:  
+"Sorry, I can't help with that."
+
+Use tools **sparingly and only when they are the best option.**
 """
-    llm = LLMResponder("llama3.2:1b-instruct-fp16", system_prompt=system_prompt)
+    # llm = LLMResponder("llama3.2:1b-instruct-fp16", system_prompt=system_prompt)
+    llm = LLMResponder("qwen3:0.6b", system_prompt=system_prompt)
     llm.bind_tools(tool_list)
+
 
     builder = StateGraph(QAState)
     builder.add_node("generate", llm)
